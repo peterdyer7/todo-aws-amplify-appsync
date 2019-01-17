@@ -1,4 +1,12 @@
 import React, { useState } from 'react';
+import Amplify, { graphqlOperation } from 'aws-amplify';
+import { Connect } from 'aws-amplify-react';
+
+import aws_config from './aws-exports';
+import * as queries from './graphql/queries';
+import * as mutations from './graphql/mutations';
+
+Amplify.configure(aws_config);
 
 function ListTodos({ todos }) {
   return (
@@ -31,20 +39,24 @@ function AddTodo({ addTodo }) {
 }
 
 export default function App() {
-  const [todos, setTodos] = useState([
-    { id: '1', name: 'first todo' },
-    { id: '2', name: 'second todo' }
-  ]);
-
-  const addTodo = ({ input }) => {
-    setTodos([...todos, { id: '3', name: input.name }]);
-  };
-
   return (
     <>
       <h1>Todo App</h1>
-      <AddTodo addTodo={addTodo} />
-      <ListTodos todos={todos} />
+      <Connect mutation={graphqlOperation(mutations.createTodo)}>
+        {({ mutation }) => <AddTodo addTodo={mutation} />}
+      </Connect>
+
+      <Connect query={graphqlOperation(queries.listTodos)}>
+        {({ data: { listTodos }, loading, error }) => {
+          if (error) return <h3>Error</h3>;
+          if (loading) return <h3>Loading...</h3>;
+          if (listTodos.items.length === 0) return <h5>no todos</h5>;
+          return (
+            listTodos &&
+            listTodos.items && <ListTodos todos={listTodos.items} />
+          );
+        }}
+      </Connect>
     </>
   );
 }
