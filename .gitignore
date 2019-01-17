@@ -3,6 +3,8 @@
 #amplify
 .amplifyrc
 /amplify
+aws-exports.js
+.graphqlconfig.yml
 
 # dependencies
 /node_modules
@@ -25,4 +27,3 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
