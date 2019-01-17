@@ -5,6 +5,7 @@ import { Connect } from 'aws-amplify-react';
 import aws_config from './aws-exports';
 import * as queries from './graphql/queries';
 import * as mutations from './graphql/mutations';
+import * as subscriptions from './graphql/subscriptions';
 
 Amplify.configure(aws_config);
 
@@ -46,15 +47,18 @@ export default function App() {
         {({ mutation }) => <AddTodo addTodo={mutation} />}
       </Connect>
 
-      <Connect query={graphqlOperation(queries.listTodos)}>
+      <Connect
+        query={graphqlOperation(queries.listTodos)}
+        subscription={graphqlOperation(subscriptions.onCreateTodo)}
+        onSubscriptionMsg={(prev, { onCreateTodo }) => {
+          prev.listTodos.items.push(onCreateTodo);
+          return prev;
+        }}
+      >
         {({ data: { listTodos }, loading, error }) => {
           if (error) return <h3>Error</h3>;
           if (loading) return <h3>Loading...</h3>;
-          if (listTodos.items.length === 0) return <h5>no todos</h5>;
-          return (
-            listTodos &&
-            listTodos.items && <ListTodos todos={listTodos.items} />
-          );
+          return <ListTodos todos={listTodos.items} />;
         }}
       </Connect>
     </>
