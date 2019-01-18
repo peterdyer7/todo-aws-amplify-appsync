@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
-import Amplify, { graphqlOperation } from 'aws-amplify';
-import { Connect } from 'aws-amplify-react';
+import { Query, Mutation } from 'react-apollo';
+import gql from 'graphql-tag';
 
-import aws_config from './aws-exports';
 import * as queries from './graphql/queries';
 import * as mutations from './graphql/mutations';
-import * as subscriptions from './graphql/subscriptions';
-
-Amplify.configure(aws_config);
 
 function ListTodos({ todos }) {
   return (
@@ -28,7 +24,7 @@ function AddTodo({ addTodo }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    addTodo({ input: { name: todo } });
+    addTodo({ variables: { input: { name: todo } } });
   };
 
   return (
@@ -43,24 +39,25 @@ export default function App() {
   return (
     <>
       <h1>Todo App</h1>
-      <Connect mutation={graphqlOperation(mutations.createTodo)}>
-        {({ mutation }) => <AddTodo addTodo={mutation} />}
-      </Connect>
-
-      <Connect
-        query={graphqlOperation(queries.listTodos)}
-        subscription={graphqlOperation(subscriptions.onCreateTodo)}
-        onSubscriptionMsg={(prev, { onCreateTodo }) => {
-          prev.listTodos.items.push(onCreateTodo);
-          return prev;
-        }}
+      <Mutation
+        mutation={gql(mutations.createTodo)}
+        refetchQueries={[{ query: gql(queries.listTodos) }]}
       >
-        {({ data: { listTodos }, loading, error }) => {
+        {(mutate) => <AddTodo addTodo={mutate} />}
+      </Mutation>
+
+      <Query query={gql(queries.listTodos)}>
+        {({ data: { listTodos }, loading, error, refetch }) => {
           if (error) return <h3>Error</h3>;
           if (loading) return <h3>Loading...</h3>;
-          return <ListTodos todos={listTodos.items} />;
+          return (
+            <>
+              <ListTodos todos={listTodos.items} />
+              <button onClick={() => refetch()}>Refetch</button>
+            </>
+          );
         }}
-      </Connect>
+      </Query>
     </>
   );
 }
