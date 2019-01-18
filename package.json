@@ -5,8 +5,12 @@
   "dependencies": {
     "aws-amplify": "^1.1.19",
     "aws-amplify-react": "^2.3.0",
+    "aws-appsync": "^1.7.1",
+    "aws-appsync-react": "^1.2.6",
     "cuid": "^2.1.4",
+    "graphql-tag": "^2.10.1",
     "react": "^16.8.0-alpha.1",
+    "react-apollo": "^2.3.3",
     "react-dom": "^16.8.0-alpha.1",
     "react-scripts": "2.1.3"
   },
