@@ -15,7 +15,8 @@ const client = new AWSAppSyncClient({
   auth: {
     type: aws_config.aws_appsync_authenticationType,
     apiKey: aws_config.aws_appsync_apiKey
-  }
+  },
+  disableOffline: true
 });
 
 ReactDOM.render(

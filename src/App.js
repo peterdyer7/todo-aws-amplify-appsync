@@ -24,7 +24,27 @@ function AddTodo({ addTodo }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    addTodo({ variables: { input: { name: todo } } });
+    addTodo({
+      variables: { input: { name: todo } },
+      optimisticResponse: {
+        createTodo: {
+          name: todo,
+          id: Math.round(Math.random() * -1000000),
+          description: '',
+          __typename: 'Todo'
+        }
+      },
+      update: (cache, { data: { createTodo } }) => {
+        const cachedTodos = cache.readQuery({
+          query: gql(queries.listTodos)
+        });
+        cachedTodos.listTodos.items.push(createTodo);
+        cache.writeQuery({
+          query: gql(queries.listTodos),
+          data: cachedTodos
+        });
+      }
+    });
   };
 
   return (
@@ -39,10 +59,7 @@ export default function App() {
   return (
     <>
       <h1>Todo App</h1>
-      <Mutation
-        mutation={gql(mutations.createTodo)}
-        refetchQueries={[{ query: gql(queries.listTodos) }]}
-      >
+      <Mutation mutation={gql(mutations.createTodo)}>
         {(mutate) => <AddTodo addTodo={mutate} />}
       </Mutation>
 
@@ -53,7 +70,6 @@ export default function App() {
           return (
             <>
               <ListTodos todos={listTodos.items} />
-              <button onClick={() => refetch()}>Refetch</button>
             </>
           );
         }}
